@@ -2,9 +2,9 @@
     // 从环境变量中获取参数
     // 以下环境变量必须被设置
     $pagetitlevar = getenv('PAGETITLE'); // 网页标题
-    $usernamevar = getenv('USERNAME'); // 你的用户名，即你的主页地址 @ 后面的那部分，如 https://afdian.net/@MisaLiu，那么 MisaLiu 就是你的用户名
-    $useridvar = getenv('USERID'); // 你的用户 ID，请前往 https://afdian.net/dashboard/dev 获取
-    $tokenvar = getenv('TOKEN'); // 你的 API Token，请前往 https://afdian.net/dashboard/dev 获取
+    $usernamevar = getenv('USERNAME'); // 你的用户名，即你的主页地址 @ 后面的那部分，如 https://afdian.com/@MisaLiu，那么 MisaLiu 就是你的用户名
+    $useridvar = getenv('USERID'); // 你的用户 ID，请前往 https://afdian.com/dashboard/dev 获取
+    $tokenvar = getenv('TOKEN'); // 你的 API Token，请前往 https://afdian.com/dashboard/dev 获取
     $_AFDIAN = array(
         'pageTitle' => $pagetitlevar,
         'userName'  => $usernamevar,
@@ -22,7 +22,7 @@
     $data['sign']    = SignAfdian($_AFDIAN['token'], $data['params'], $_AFDIAN['userId'], $data['ts']);
 
     // 请求爱发电API获取赞助者数据
-    $api_url = 'https://afdian.net/api/open/query-sponsor';
+    $api_url = 'https://afdian.com/api/open/query-sponsor';
     
     // 记录发送请求的参数
     error_log("爱发电API请求参数: " . json_encode($data));
@@ -127,7 +127,7 @@ $html = <<< HTML
 
         <main class="mdui-container mdui-typo">
             <h1 class="mdui-text-center">支持我，为我发电</h1>
-            <iframe id="afdian_leaflet" class="mdui-center" src="https://afdian.net/leaflet?slug=${_AFDIAN['userName']}" scrolling="no" frameborder="0"></iframe>
+            <iframe id="afdian_leaflet" class="mdui-center" src="https://afdian.com/leaflet?slug=${_AFDIAN['userName']}" scrolling="no" frameborder="0"></iframe>
             <div class="mdui-divider mdui-m-t-5"></div>
             <h2 class="mdui-text-center">感谢以下小伙伴的发电支持！</h2>
             
@@ -197,7 +197,7 @@ $html = <<< HTML
 
         <main class="mdui-container mdui-typo">
             <h1 class="mdui-text-center">支持我，为我发电</h1>
-            <iframe id="afdian_leaflet" class="mdui-center" src="https://afdian.net/leaflet?slug=${_AFDIAN['userName']}" scrolling="no" frameborder="0"></iframe>
+            <iframe id="afdian_leaflet" class="mdui-center" src="https://afdian.com/leaflet?slug=${_AFDIAN['userName']}" scrolling="no" frameborder="0"></iframe>
             <div class="mdui-divider mdui-m-t-5"></div>
             <h2 class="mdui-text-center">感谢以下小伙伴的发电支持！</h2>
             

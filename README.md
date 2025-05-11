@@ -23,7 +23,7 @@
 1. 在Vercel上部署此仓库
 [![Deploy with Vercel](https://vercel.com/new/clone?repository-url=https://github.com/miloce/sponsor&env=USERID,TOKEN,PAGETITLE,USERNAME)
 
-2. 获取你的爱发电 UserId 和 API Token [点此一键直达](https://afdian.net/dashboard/dev)
+2. 获取你的爱发电 UserId 和 API Token [点此一键直达](https://afdian.com/dashboard/dev)
 
 3. 将这些信息填入环境变量 USERID（UserId） TOKEN（API Token）
 
@@ -35,4 +35,4 @@
 * [juicyfx/vercel-php](https://github.com/juicyfx/vercel-php)
 * [MisaLiu/afdian-sponsor-page](https://github.com/MisaLiu/afdian-sponsor-page)
 * [zdhxiong/mdui](https://github.com/zdhxiong/mdui)
-* [爱发电](https://afdian.net)
+* [爱发电](https://afdian.com)
