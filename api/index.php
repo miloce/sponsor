@@ -99,47 +99,253 @@ $html = <<< HTML
 <html>
     <head>
         <meta charset="utf8" />
-        <meta name="viewport" content="width=device-width" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <link rel="stylesheet" href="./css/mdui.min.css" />
         <link rel="stylesheet" href="./css/main.css" />
         <script src="./js/mdui.min.js"></script>
         <title>${_AFDIAN['pageTitle']}</title>
+        <style>
+            body {
+                background-color: #f5f5f5;
+                transition: all 0.3s ease;
+            }
+            .mdui-card {
+                margin-bottom: 16px;
+                border-radius: 8px;
+                box-shadow: 0 3px 5px -1px rgba(0,0,0,.2), 0 6px 10px 0 rgba(0,0,0,.14), 0 1px 18px 0 rgba(0,0,0,.12);
+                transition: all 0.3s cubic-bezier(.25,.8,.25,1);
+                overflow: hidden;
+            }
+            .mdui-card:hover {
+                box-shadow: 0 6px 10px -1px rgba(0,0,0,.2), 0 12px 20px 0 rgba(0,0,0,.14), 0 2px 36px 0 rgba(0,0,0,.12);
+                transform: translateY(-3px);
+            }
+            .mdui-card-header {
+                padding: 16px;
+            }
+            .mdui-card-header-avatar {
+                border-radius: 50%;
+                width: 60px;
+                height: 60px;
+                object-fit: cover;
+                border: 2px solid #fff;
+                box-shadow: 0 2px 4px rgba(0,0,0,.1);
+            }
+            .mdui-card-header-title {
+                font-size: 18px;
+                font-weight: 500;
+                margin-bottom: 4px;
+            }
+            .mdui-card-header-subtitle {
+                font-size: 14px;
+                opacity: 0.75;
+            }
+            .mdui-card-media {
+                position: relative;
+                overflow: hidden;
+            }
+            .mdui-card-media img {
+                width: 100%;
+                transition: transform 0.3s ease;
+            }
+            .mdui-card:hover .mdui-card-media img {
+                transform: scale(1.05);
+            }
+            #afdian_leaflet {
+                width: 100%;
+                height: 240px;
+                max-width: 800px;
+                border-radius: 8px;
+                box-shadow: 0 3px 6px rgba(0,0,0,.16);
+                margin: 24px auto;
+                display: block;
+            }
+            .page-title {
+                position: relative;
+                padding-bottom: 8px;
+                margin-bottom: 32px;
+            }
+            .page-title:after {
+                content: '';
+                position: absolute;
+                bottom: 0;
+                left: 50%;
+                transform: translateX(-50%);
+                width: 80px;
+                height: 4px;
+                background-color: var(--mdui-color-theme);
+                border-radius: 2px;
+            }
+            .mdui-btn-group.-center {
+                display: flex;
+                justify-content: center;
+                margin: 0 16px;
+            }
+            .mdui-btn {
+                min-width: 88px;
+                height: 36px;
+                border-radius: 4px;
+                text-transform: uppercase;
+                font-weight: 500;
+                transition: all 0.2s ease;
+            }
+            .mdui-btn-raised {
+                box-shadow: 0 3px 1px -2px rgba(0,0,0,.2), 0 2px 2px 0 rgba(0,0,0,.14), 0 1px 5px 0 rgba(0,0,0,.12);
+            }
+            .mdui-btn-raised:hover {
+                box-shadow: 0 2px 4px -1px rgba(0,0,0,.2), 0 4px 5px 0 rgba(0,0,0,.14), 0 1px 10px 0 rgba(0,0,0,.12);
+            }
+            .mdui-divider {
+                margin: 32px 0;
+                height: 1px;
+                background-color: rgba(0,0,0,.08);
+            }
+            .mdui-container {
+                padding: 16px;
+                max-width: 1200px;
+                margin: 0 auto;
+            }
+            .mdui-row {
+                margin: -8px;
+            }
+            [class*=mdui-col] {
+                padding: 8px;
+            }
+            .mdui-appbar {
+                box-shadow: 0 2px 4px rgba(0,0,0,.1);
+            }
+            @media (max-width: 600px) {
+                .mdui-container {
+                    padding: 8px;
+                }
+                #afdian_leaflet {
+                    height: 200px;
+                }
+                .page-title {
+                    font-size: 24px;
+                }
+            }
+            .empty-state {
+                text-align: center;
+                padding: 48px 0;
+                color: rgba(0,0,0,.6);
+            }
+            .empty-state i {
+                font-size: 64px;
+                margin-bottom: 16px;
+                opacity: 0.5;
+            }
+            .mdui-drawer {
+                background-color: #fff;
+                width: 240px;
+                box-shadow: 0 8px 10px -5px rgba(0,0,0,.2), 0 16px 24px 2px rgba(0,0,0,.14), 0 6px 30px 5px rgba(0,0,0,.12);
+            }
+            .drawer-header {
+                height: 180px;
+                background-color: var(--mdui-color-theme);
+                color: #fff;
+                padding: 16px;
+                display: flex;
+                flex-direction: column;
+                justify-content: flex-end;
+            }
+            .drawer-title {
+                font-size: 24px;
+                font-weight: 500;
+                margin-bottom: 4px;
+            }
+            .drawer-subtitle {
+                font-size: 14px;
+                opacity: 0.85;
+            }
+        </style>
     </head>
-    <body class="mdui-appbar-with-toolbar mdui-theme-primary-blue-grey mdui-theme-accent-red mdui-theme-layout-auto">
+    <body class="mdui-appbar-with-toolbar mdui-theme-primary-blue-grey mdui-theme-accent-pink mdui-theme-layout-auto">
         <header class="mdui-appbar mdui-appbar-fixed">
             <div class="mdui-progress mdui-hidden" style="position:absolute;top:0;width:100%" id="mdui_progress">
                 <div class="mdui-progress-indeterminate" style="background-color:white"></div>
             </div>
             <div class="mdui-toolbar mdui-color-theme">
-                <button class="mdui-btn mdui-btn-icon mdui-ripple" mdui-drawer="{target:'#drawer',swipe:true}"><i class="mdui-icon material-icons">menu</i></button>
+                <button class="mdui-btn mdui-btn-icon mdui-ripple" mdui-drawer="{target:'#drawer',swipe:true}">
+                    <i class="mdui-icon material-icons">menu</i>
+                </button>
                 <a href="javascript:;" class="mdui-typo-headline">${_AFDIAN['pageTitle']}</a>
+                <div class="mdui-toolbar-spacer"></div>
+                <button class="mdui-btn mdui-btn-icon mdui-ripple" mdui-tooltip="{content: '刷新'}" onclick="location.reload()">
+                    <i class="mdui-icon material-icons">refresh</i>
+                </button>
             </div>
         </header>
 
         <drawer class="mdui-drawer mdui-drawer-close" id="drawer">
+            <div class="drawer-header">
+                <div class="drawer-title">${_AFDIAN['pageTitle']}</div>
+                <div class="drawer-subtitle">感谢您的支持</div>
+            </div>
             <div class="mdui-list">
-                <a class="mdui-list-item mdui-ripple">
+                <a class="mdui-list-item mdui-ripple mdui-list-item-active">
                     <i class="mdui-list-item-icon mdui-icon material-icons">home</i>
                     <div class="mdui-list-item-content">首页</div>
+                </a>
+                <a href="https://afdian.com/@${_AFDIAN['userName']}" target="_blank" class="mdui-list-item mdui-ripple">
+                    <i class="mdui-list-item-icon mdui-icon material-icons">favorite</i>
+                    <div class="mdui-list-item-content">爱发电主页</div>
+                </a>
+                <div class="mdui-divider"></div>
+                <a class="mdui-list-item mdui-ripple" mdui-dialog="{target: '#about-dialog'}">
+                    <i class="mdui-list-item-icon mdui-icon material-icons">info</i>
+                    <div class="mdui-list-item-content">关于</div>
                 </a>
             </div>
         </drawer>
 
         <main class="mdui-container mdui-typo">
-            <h1 class="mdui-text-center">支持我，为我发电</h1>
-            <iframe id="afdian_leaflet" class="mdui-center" src="https://afdian.com/leaflet?slug=${_AFDIAN['userName']}" scrolling="no" frameborder="0"></iframe>
-            <div class="mdui-divider mdui-m-t-5"></div>
-            <h2 class="mdui-text-center">感谢以下小伙伴的发电支持！</h2>
+            <h1 class="mdui-text-center page-title">支持我，为我发电</h1>
+            <iframe id="afdian_leaflet" class="mdui-center mdui-shadow-5" src="https://afdian.com/leaflet?slug=${_AFDIAN['userName']}" scrolling="no" frameborder="0"></iframe>
+            <div class="mdui-divider"></div>
+            <h2 class="mdui-text-center page-title">感谢以下小伙伴的发电支持！</h2>
             
             <div class="mdui-m-b-2" id="afdian_sponsors">
                 <div class="mdui-row">
-                    ${donatorsHTML}
+                    ${isset($donatorsHTML) && !empty($donatorsHTML) ? $donatorsHTML : '<div class="mdui-col-xs-12 empty-state"><i class="mdui-icon material-icons">emoji_people</i><p>暂无赞助者</p></div>'}
                 </div>
-                ${pageControlHTML}
+                ${isset($pageControlHTML) && !empty($pageControlHTML) ? $pageControlHTML : ''}
             </div>
         </main>
 
+        <div class="mdui-dialog" id="about-dialog">
+            <div class="mdui-dialog-title">关于</div>
+            <div class="mdui-dialog-content">
+                <p>本页面展示了对我的赞助信息，感谢每一位支持我的朋友！</p>
+                <p>基于 <a href="https://github.com/miloce/sponsor" target="_blank">afdian-sponsor-page-vercel</a> 开发</p>
+            </div>
+            <div class="mdui-dialog-actions">
+                <button class="mdui-btn mdui-ripple" mdui-dialog-close>关闭</button>
+            </div>
+        </div>
+
         <script src="./js/main.js"></script>
+        <script>
+            // 添加页面加载动画
+            document.addEventListener('DOMContentLoaded', function() {
+                const progress = document.getElementById('mdui_progress');
+                progress.classList.remove('mdui-hidden');
+                
+                window.setTimeout(function() {
+                    progress.classList.add('mdui-hidden');
+                }, 1000);
+            });
+            
+            // 初始化所有工具提示
+            mdui.mutation();
+            
+            // 添加卡片动画效果
+            const cards = document.querySelectorAll('.mdui-card');
+            cards.forEach(function(card, index) {
+                card.style.animationDelay = (index * 0.1) + 's';
+                card.classList.add('mdui-animation-fade-in');
+            });
+        </script>
     </body>
 </html>
 HTML;
@@ -169,37 +375,211 @@ $html = <<< HTML
 <html>
     <head>
         <meta charset="utf8" />
-        <meta name="viewport" content="width=device-width" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <link rel="stylesheet" href="./css/mdui.min.css" />
         <link rel="stylesheet" href="./css/main.css" />
         <script src="./js/mdui.min.js"></script>
         <title>${_AFDIAN['pageTitle']}</title>
+        <style>
+            body {
+                background-color: #f5f5f5;
+                transition: all 0.3s ease;
+            }
+            .mdui-card {
+                margin-bottom: 16px;
+                border-radius: 8px;
+                box-shadow: 0 3px 5px -1px rgba(0,0,0,.2), 0 6px 10px 0 rgba(0,0,0,.14), 0 1px 18px 0 rgba(0,0,0,.12);
+                transition: all 0.3s cubic-bezier(.25,.8,.25,1);
+                overflow: hidden;
+            }
+            .mdui-card:hover {
+                box-shadow: 0 6px 10px -1px rgba(0,0,0,.2), 0 12px 20px 0 rgba(0,0,0,.14), 0 2px 36px 0 rgba(0,0,0,.12);
+                transform: translateY(-3px);
+            }
+            .mdui-card-header {
+                padding: 16px;
+            }
+            .mdui-card-header-avatar {
+                border-radius: 50%;
+                width: 60px;
+                height: 60px;
+                object-fit: cover;
+                border: 2px solid #fff;
+                box-shadow: 0 2px 4px rgba(0,0,0,.1);
+            }
+            .mdui-card-header-title {
+                font-size: 18px;
+                font-weight: 500;
+                margin-bottom: 4px;
+            }
+            .mdui-card-header-subtitle {
+                font-size: 14px;
+                opacity: 0.75;
+            }
+            .mdui-card-media {
+                position: relative;
+                overflow: hidden;
+            }
+            .mdui-card-media img {
+                width: 100%;
+                transition: transform 0.3s ease;
+            }
+            .mdui-card:hover .mdui-card-media img {
+                transform: scale(1.05);
+            }
+            #afdian_leaflet {
+                width: 100%;
+                height: 240px;
+                max-width: 800px;
+                border-radius: 8px;
+                box-shadow: 0 3px 6px rgba(0,0,0,.16);
+                margin: 24px auto;
+                display: block;
+            }
+            .page-title {
+                position: relative;
+                padding-bottom: 8px;
+                margin-bottom: 32px;
+            }
+            .page-title:after {
+                content: '';
+                position: absolute;
+                bottom: 0;
+                left: 50%;
+                transform: translateX(-50%);
+                width: 80px;
+                height: 4px;
+                background-color: var(--mdui-color-theme);
+                border-radius: 2px;
+            }
+            .mdui-btn-group.-center {
+                display: flex;
+                justify-content: center;
+                margin: 0 16px;
+            }
+            .mdui-btn {
+                min-width: 88px;
+                height: 36px;
+                border-radius: 4px;
+                text-transform: uppercase;
+                font-weight: 500;
+                transition: all 0.2s ease;
+            }
+            .mdui-btn-raised {
+                box-shadow: 0 3px 1px -2px rgba(0,0,0,.2), 0 2px 2px 0 rgba(0,0,0,.14), 0 1px 5px 0 rgba(0,0,0,.12);
+            }
+            .mdui-btn-raised:hover {
+                box-shadow: 0 2px 4px -1px rgba(0,0,0,.2), 0 4px 5px 0 rgba(0,0,0,.14), 0 1px 10px 0 rgba(0,0,0,.12);
+            }
+            .mdui-divider {
+                margin: 32px 0;
+                height: 1px;
+                background-color: rgba(0,0,0,.08);
+            }
+            .mdui-container {
+                padding: 16px;
+                max-width: 1200px;
+                margin: 0 auto;
+            }
+            .mdui-row {
+                margin: -8px;
+            }
+            [class*=mdui-col] {
+                padding: 8px;
+            }
+            .mdui-appbar {
+                box-shadow: 0 2px 4px rgba(0,0,0,.1);
+            }
+            @media (max-width: 600px) {
+                .mdui-container {
+                    padding: 8px;
+                }
+                #afdian_leaflet {
+                    height: 200px;
+                }
+                .page-title {
+                    font-size: 24px;
+                }
+            }
+            .empty-state {
+                text-align: center;
+                padding: 48px 0;
+                color: rgba(0,0,0,.6);
+            }
+            .empty-state i {
+                font-size: 64px;
+                margin-bottom: 16px;
+                opacity: 0.5;
+            }
+            .mdui-drawer {
+                background-color: #fff;
+                width: 240px;
+                box-shadow: 0 8px 10px -5px rgba(0,0,0,.2), 0 16px 24px 2px rgba(0,0,0,.14), 0 6px 30px 5px rgba(0,0,0,.12);
+            }
+            .drawer-header {
+                height: 180px;
+                background-color: var(--mdui-color-theme);
+                color: #fff;
+                padding: 16px;
+                display: flex;
+                flex-direction: column;
+                justify-content: flex-end;
+            }
+            .drawer-title {
+                font-size: 24px;
+                font-weight: 500;
+                margin-bottom: 4px;
+            }
+            .drawer-subtitle {
+                font-size: 14px;
+                opacity: 0.85;
+            }
+        </style>
     </head>
-    <body class="mdui-appbar-with-toolbar mdui-theme-primary-blue-grey mdui-theme-accent-red mdui-theme-layout-auto">
+    <body class="mdui-appbar-with-toolbar mdui-theme-primary-blue-grey mdui-theme-accent-pink mdui-theme-layout-auto">
         <header class="mdui-appbar mdui-appbar-fixed">
             <div class="mdui-progress mdui-hidden" style="position:absolute;top:0;width:100%" id="mdui_progress">
                 <div class="mdui-progress-indeterminate" style="background-color:white"></div>
             </div>
             <div class="mdui-toolbar mdui-color-theme">
-                <button class="mdui-btn mdui-btn-icon mdui-ripple" mdui-drawer="{target:'#drawer',swipe:true}"><i class="mdui-icon material-icons">menu</i></button>
+                <button class="mdui-btn mdui-btn-icon mdui-ripple" mdui-drawer="{target:'#drawer',swipe:true}">
+                    <i class="mdui-icon material-icons">menu</i>
+                </button>
                 <a href="javascript:;" class="mdui-typo-headline">${_AFDIAN['pageTitle']}</a>
+                <div class="mdui-toolbar-spacer"></div>
+                <button class="mdui-btn mdui-btn-icon mdui-ripple" mdui-tooltip="{content: '刷新'}" onclick="location.reload()">
+                    <i class="mdui-icon material-icons">refresh</i>
+                </button>
             </div>
         </header>
 
         <drawer class="mdui-drawer mdui-drawer-close" id="drawer">
+            <div class="drawer-header">
+                <div class="drawer-title">${_AFDIAN['pageTitle']}</div>
+                <div class="drawer-subtitle">感谢您的支持</div>
+            </div>
             <div class="mdui-list">
-                <a class="mdui-list-item mdui-ripple">
+                <a class="mdui-list-item mdui-ripple mdui-list-item-active">
                     <i class="mdui-list-item-icon mdui-icon material-icons">home</i>
                     <div class="mdui-list-item-content">首页</div>
+                </a>
+                <a href="https://afdian.com/@${_AFDIAN['userName']}" target="_blank" class="mdui-list-item mdui-ripple">
+                    <i class="mdui-list-item-icon mdui-icon material-icons">favorite</i>
+                    <div class="mdui-list-item-content">爱发电主页</div>
+                </a>
+                <div class="mdui-divider"></div>
+                <a class="mdui-list-item mdui-ripple" mdui-dialog="{target: '#about-dialog'}">
+                    <i class="mdui-list-item-icon mdui-icon material-icons">info</i>
+                    <div class="mdui-list-item-content">关于</div>
                 </a>
             </div>
         </drawer>
 
         <main class="mdui-container mdui-typo">
-            <h1 class="mdui-text-center">支持我，为我发电</h1>
-            <iframe id="afdian_leaflet" class="mdui-center" src="https://afdian.com/leaflet?slug=${_AFDIAN['userName']}" scrolling="no" frameborder="0"></iframe>
-            <div class="mdui-divider mdui-m-t-5"></div>
-            <h2 class="mdui-text-center">感谢以下小伙伴的发电支持！</h2>
+            <h1 class="mdui-text-center page-title">支持我，为我发电</h1>
+            <iframe id="afdian_leaflet" class="mdui-center mdui-shadow-5" src="https://afdian.com/leaflet?slug=${_AFDIAN['userName']}" scrolling="no" frameborder="0"></iframe>
+            <div class="mdui-divider"></div>
+            <h2 class="mdui-text-center page-title">感谢以下小伙伴的发电支持！</h2>
             
             <div class="mdui-m-b-2" id="afdian_sponsors">
                 <div class="mdui-row">
@@ -209,7 +589,39 @@ $html = <<< HTML
             </div>
         </main>
 
+        <div class="mdui-dialog" id="about-dialog">
+            <div class="mdui-dialog-title">关于</div>
+            <div class="mdui-dialog-content">
+                <p>本页面展示了对我的赞助信息，感谢每一位支持我的朋友！</p>
+                <p>基于 <a href="https://github.com/miloce/sponsor" target="_blank">afdian-sponsor-page-vercel</a> 开发</p>
+            </div>
+            <div class="mdui-dialog-actions">
+                <button class="mdui-btn mdui-ripple" mdui-dialog-close>关闭</button>
+            </div>
+        </div>
+
         <script src="./js/main.js"></script>
+        <script>
+            // 添加页面加载动画
+            document.addEventListener('DOMContentLoaded', function() {
+                const progress = document.getElementById('mdui_progress');
+                progress.classList.remove('mdui-hidden');
+                
+                window.setTimeout(function() {
+                    progress.classList.add('mdui-hidden');
+                }, 1000);
+            });
+            
+            // 初始化所有工具提示
+            mdui.mutation();
+            
+            // 添加卡片动画效果
+            const cards = document.querySelectorAll('.mdui-card');
+            cards.forEach(function(card, index) {
+                card.style.animationDelay = (index * 0.1) + 's';
+                card.classList.add('mdui-animation-fade-in');
+            });
+        </script>
     </body>
 </html>
 HTML;
