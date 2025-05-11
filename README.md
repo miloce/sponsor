@@ -16,12 +16,12 @@
 
 ## 使用效果
 
-访问 https://afdian-sponsor-page-vercel.vercel.app/ 来查看
+访问 https://sponsor.luozhinet.com/ 来查看
 
 ## 使用方法
 
 1. 在Vercel上部署此仓库
-[![Deploy with Vercel](https://vercel.com/new/clone?repository-url=https://github.com/miloce/sponsor&env=USERID,TOKEN,PAGETITLE,USERNAME)
+[Deploy with Vercel](https://vercel.com/new/clone?repository-url=https://github.com/miloce/sponsor&env=USERID,TOKEN,PAGETITLE,USERNAME)
 
 2. 获取你的爱发电 UserId 和 API Token [点此一键直达](https://afdian.com/dashboard/dev)
 
