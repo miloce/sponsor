@@ -41,8 +41,17 @@
     $data = array();
     $data['user_id'] = $_AFDIAN['userId'];
     $data['params']  = json_encode(array('page' => $currentPage));
-    $data['ts']      = time();
-    $data['sign']    = SignAfdian($_AFDIAN['token'], $data['params'], $_AFDIAN['userId']);
+    
+    // 获取当前时间戳
+    $timestamp = time();
+    $data['ts'] = $timestamp;
+    
+    // 计算签名
+    $data['sign'] = SignAfdian($_AFDIAN['token'], $data['params'], $_AFDIAN['userId'], $timestamp);
+
+    // 添加直接测试连接
+    $testConnection = HttpGet('https://afdian.net/api/open/ping');
+    error_log('爱发电API连接测试: ' . $testConnection);
 
     // 请求爱发电API
     $apiUrl = 'https://afdian.net/api/open/query-sponsor?' . http_build_query($data);
@@ -262,10 +271,10 @@ HTML;
         }
     }
 
-    function SignAfdian ($token, $params, $userId) {
+    function SignAfdian ($token, $params, $userId, $timestamp) {
         $sign = $token;
         $sign .= 'params' . $params;
-        $sign .= 'ts' . time();
+        $sign .= 'ts' . $timestamp;
         $sign .= 'user_id' . $userId;
         
         error_log('签名计算 - token长度: ' . strlen($token) . 
