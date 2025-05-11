@@ -60,11 +60,7 @@
                         <img class="mdui-card-header-avatar" src="' . $_donator['user']['avatar'] . '" />
                         <div class="mdui-card-header-title">' . $_donator['user']['name'] .
                         '&nbsp;&nbsp;&nbsp;&nbsp;共' . $_donator['all_sum_amount'] . '元' . '</div>
-                        <div class="mdui-card-header-subtitle">最后发电：' .
-                        (empty($_donator['last_sponsor']['name']) ?
-                            '暂无' :
-                            $_donator['last_sponsor']['name'] . '&nbsp;&nbsp;' . $_donator['last_sponsor']['show_price'] . '元，于 ' . date('Y-m-d H:i:s', $_donator['last_pay_time'])) .
-                        '</div>
+                        <div class="mdui-card-header-subtitle">最后发电：' . $_donator['all_sum_amount'] . '元，于 ' . date('Y-m-d H:i:s', $_donator['last_pay_time']) . '</div>
                     </div>' .
                         (!empty($_donator['last_sponsor']['pic']) ? '
                         <div class="mdui-card-media">
