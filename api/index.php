@@ -78,6 +78,7 @@
                 )
             )
         );
+        $result = $decoded;
     } else {
         // 尝试从API获取数据
         // 添加直接测试连接
@@ -98,80 +99,81 @@
         error_log('解码结果: ' . ($decoded ? 'JSON解析成功' : 'JSON解析失败') . 
                  ', EC: ' . (isset($decoded['ec']) ? $decoded['ec'] : '未设置') . 
                  ', EM: ' . (isset($decoded['em']) ? $decoded['em'] : '未设置'));
+                 
+        $result = $decoded;
+    }
+
+    if (isset($result['data']) && $result['data'] !== null) {
+        $donator['total']     = $result['data']['total_count'];
+        $donator['totalPage'] = $result['data']['total_page'];
+        $donator['list']      = $result['data']['list'];
+
+        $donatorsHTML = '';
+        for ($i = 0; $i < count($donator['list']); $i++) {
+            $_donator = $donator['list'][$i];
+            
+            // 安全地获取赞助计划
+            $sponsor_plans = isset($_donator['sponsor_plans']) ? $_donator['sponsor_plans'] : array();
+            $current_plan = isset($_donator['current_plan']) ? $_donator['current_plan'] : array('name' => '');
+            
+            // 安全地获取last_sponsor
+            $last_sponsor_plan = !empty($sponsor_plans) ? end($sponsor_plans) : array('name' => '');
+            $last_sponsor_name = isset($last_sponsor_plan['name']) ? $last_sponsor_plan['name'] : '';
+            
+            $_donator['last_sponsor'] = empty($last_sponsor_name) ? 
+                (empty($current_plan['name']) ? array('name' => '') : $current_plan) : 
+                $last_sponsor_plan;
+            
+            // 获取用户头像和名称
+            $user_avatar = isset($_donator['user']['avatar']) ? $_donator['user']['avatar'] : 'https://static.luozhinet.com/xcx/assets/icons/default-avatar.png';
+            $user_name = isset($_donator['user']['name']) ? $_donator['user']['name'] : '未知用户';
+            $all_sum_amount = isset($_donator['all_sum_amount']) ? $_donator['all_sum_amount'] : '0';
+            
+            $donatorsHTML .= '<div class="mdui-col-xs-12 mdui-col-md-6 mdui-m-b-2">
+                <div class="mdui-card">
+                    <div class="mdui-card-header">
+                        <img class="mdui-card-header-avatar" src="' . $user_avatar . '" />
+                        <div class="mdui-card-header-title">' . $user_name .
+                        '&nbsp;&nbsp;&nbsp;&nbsp;共' . $all_sum_amount . '元' . '</div>
+                        <div class="mdui-card-header-subtitle">最后发电：' .
+                        (empty($_donator['last_sponsor']['name']) ?
+                            '暂无' :
+                            $_donator['last_sponsor']['name'] . '&nbsp;&nbsp;' . 
+                            (isset($_donator['last_sponsor']['show_price']) ? $_donator['last_sponsor']['show_price'] : '?') . 
+                            '元，于 ' . (isset($_donator['last_pay_time']) ? date('Y-m-d H:i:s', $_donator['last_pay_time']) : '未知时间')) .
+                        '</div>
+                    </div>' .
+                    (isset($_donator['last_sponsor']['pic']) && !empty($_donator['last_sponsor']['pic']) ? '
+                        <div class="mdui-card-media">
+                            <img src="' . $_donator['last_sponsor']['pic'] . '"/>
+                        </div>' :
+                        '') .
+                '</div></div>';
+        }
+
+        $pageControlHTML = '<div class="mdui-row">
+            <button onclick="switchPage(' . ($currentPage - 1) . ')" class="mdui-btn mdui-btm-raised mdui-ripple mdui-color-theme-accent mdui-float-left"' . ($currentPage == 1 ? ' disabled' : '') . '>
+                <i class="mdui-icon material-icons">keyboard_arrow_left</i>
+                上一页
+            </button>
+            <div class="mdui-btn-group -center">';
         
-        // 检查API返回结果是否有效
-        if (isset($decoded['data']) && $decoded['data'] !== null) {
-            $result = $decoded;
-            $donator['total']     = $result['data']['total_count'];
-            $donator['totalPage'] = $result['data']['total_page'];
-            $donator['list']      = $result['data']['list'];
+        // 保护：确保totalPage至少为1
+        $totalPage = max(1, isset($donator['totalPage']) ? $donator['totalPage'] : 1);
+        
+        for ($i = 0; $i < $totalPage; $i++) {
+            $pageControlHTML .= '<button onclick="switchPage(' . ($i + 1) . ')" class="mdui-btn ' .
+            ($i + 1 == $currentPage ? 'mdui-btn-active mdui-color-theme-accent' : 'mdui-text-color-theme-text') .
+            '">' . ($i + 1) . '</button>';
+        }
+        $pageControlHTML .= '</div>
+            <button onclick="switchPage(' . ($currentPage + 1) . ')" class="mdui-btn mdui-btm-raised mdui-ripple mdui-color-theme-accent mdui-float-right"' . ($totalPage <= $currentPage ? ' disabled' : '') . '>
+                下一页
+                <i class="mdui-icon material-icons">keyboard_arrow_right</i>
+            </button>
+        </div>';
 
-            $donatorsHTML = '';
-            for ($i = 0; $i < count($donator['list']); $i++) {
-                $_donator = $donator['list'][$i];
-                
-                // 安全地获取赞助计划
-                $sponsor_plans = isset($_donator['sponsor_plans']) ? $_donator['sponsor_plans'] : array();
-                $current_plan = isset($_donator['current_plan']) ? $_donator['current_plan'] : array('name' => '');
-                
-                // 安全地获取last_sponsor
-                $last_sponsor_plan = !empty($sponsor_plans) ? end($sponsor_plans) : array('name' => '');
-                $last_sponsor_name = isset($last_sponsor_plan['name']) ? $last_sponsor_plan['name'] : '';
-                
-                $_donator['last_sponsor'] = empty($last_sponsor_name) ? 
-                    (empty($current_plan['name']) ? array('name' => '') : $current_plan) : 
-                    $last_sponsor_plan;
-                
-                // 获取用户头像和名称
-                $user_avatar = isset($_donator['user']['avatar']) ? $_donator['user']['avatar'] : 'https://static.luozhinet.com/xcx/assets/icons/default-avatar.png';
-                $user_name = isset($_donator['user']['name']) ? $_donator['user']['name'] : '未知用户';
-                $all_sum_amount = isset($_donator['all_sum_amount']) ? $_donator['all_sum_amount'] : '0';
-                
-                $donatorsHTML .= '<div class="mdui-col-xs-12 mdui-col-md-6 mdui-m-b-2">
-                    <div class="mdui-card">
-                        <div class="mdui-card-header">
-                            <img class="mdui-card-header-avatar" src="' . $user_avatar . '" />
-                            <div class="mdui-card-header-title">' . $user_name .
-                            '&nbsp;&nbsp;&nbsp;&nbsp;共' . $all_sum_amount . '元' . '</div>
-                            <div class="mdui-card-header-subtitle">最后发电：' .
-                            (empty($_donator['last_sponsor']['name']) ?
-                                '暂无' :
-                                $_donator['last_sponsor']['name'] . '&nbsp;&nbsp;' . 
-                                (isset($_donator['last_sponsor']['show_price']) ? $_donator['last_sponsor']['show_price'] : '?') . 
-                                '元，于 ' . (isset($_donator['last_pay_time']) ? date('Y-m-d H:i:s', $_donator['last_pay_time']) : '未知时间')) .
-                            '</div>
-                        </div>' .
-                        (isset($_donator['last_sponsor']['pic']) && !empty($_donator['last_sponsor']['pic']) ? '
-                            <div class="mdui-card-media">
-                                <img src="' . $_donator['last_sponsor']['pic'] . '"/>
-                            </div>' :
-                            '') .
-                    '</div></div>';
-            }
-
-            $pageControlHTML = '<div class="mdui-row">
-                <button onclick="switchPage(' . ($currentPage - 1) . ')" class="mdui-btn mdui-btm-raised mdui-ripple mdui-color-theme-accent mdui-float-left"' . ($currentPage == 1 ? ' disabled' : '') . '>
-                    <i class="mdui-icon material-icons">keyboard_arrow_left</i>
-                    上一页
-                </button>
-                <div class="mdui-btn-group -center">';
-            
-            // 保护：确保totalPage至少为1
-            $totalPage = max(1, isset($donator['totalPage']) ? $donator['totalPage'] : 1);
-            
-            for ($i = 0; $i < $totalPage; $i++) {
-                $pageControlHTML .= '<button onclick="switchPage(' . ($i + 1) . ')" class="mdui-btn ' .
-                ($i + 1 == $currentPage ? 'mdui-btn-active mdui-color-theme-accent' : 'mdui-text-color-theme-text') .
-                '">' . ($i + 1) . '</button>';
-            }
-            $pageControlHTML .= '</div>
-                <button onclick="switchPage(' . ($currentPage + 1) . ')" class="mdui-btn mdui-btm-raised mdui-ripple mdui-color-theme-accent mdui-float-right"' . ($totalPage <= $currentPage ? ' disabled' : '') . '>
-                    下一页
-                    <i class="mdui-icon material-icons">keyboard_arrow_right</i>
-                </button>
-            </div>';
-
-            if (empty($_POST)) {
+        if (empty($_POST)) {
 $html = <<< HTML
 <!DOCTYPE html>
 <html>
@@ -222,26 +224,26 @@ $html = <<< HTML
 </html>
 HTML;
 
-                echo $html;
-            } else {
-                $return = array();
-                $return['code'] = $result['ec'];
-                $return['msg']  = $result['em'];
-                $return['html'] = (!empty($donatorsHTML) ? '<div class="mdui-row">' . $donatorsHTML . "</div>" . $pageControlHTML : '');
-
-                echo json_encode($return);
-            }
+            echo $html;
         } else {
-            // API返回结果无效
-            $donator = array(
-                'total' => 0,
-                'totalPage' => 1,
-                'list' => array()
-            );
-            $donatorsHTML = '<div class="mdui-col-xs-12 mdui-text-center">获取发电列表失败，请稍后再试</div>';
-            $pageControlHTML = '';
+            $return = array();
+            $return['code'] = $result['ec'];
+            $return['msg']  = $result['em'];
+            $return['html'] = (!empty($donatorsHTML) ? '<div class="mdui-row">' . $donatorsHTML . "</div>" . $pageControlHTML : '');
 
-            if (empty($_POST)) {
+            echo json_encode($return);
+        }
+    } else {
+        // API返回结果无效
+        $donator = array(
+            'total' => 0,
+            'totalPage' => 1,
+            'list' => array()
+        );
+        $donatorsHTML = '<div class="mdui-col-xs-12 mdui-text-center">获取发电列表失败，请稍后再试</div>';
+        $pageControlHTML = '';
+
+        if (empty($_POST)) {
 $html = <<< HTML
 <!DOCTYPE html>
 <html>
@@ -292,15 +294,14 @@ $html = <<< HTML
 </html>
 HTML;
 
-                echo $html;
-            } else {
-                $return = array();
-                $return['code'] = $result['ec'];
-                $return['msg']  = $result['em'];
-                $return['html'] = (!empty($donatorsHTML) ? '<div class="mdui-row">' . $donatorsHTML . "</div>" . $pageControlHTML : '');
+            echo $html;
+        } else {
+            $return = array();
+            $return['code'] = $result['ec'];
+            $return['msg']  = $result['em'];
+            $return['html'] = (!empty($donatorsHTML) ? '<div class="mdui-row">' . $donatorsHTML . "</div>" . $pageControlHTML : '');
 
-                echo json_encode($return);
-            }
+            echo json_encode($return);
         }
     }
 
