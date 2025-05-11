@@ -6,6 +6,12 @@
     $useridvar = getenv('USERID'); // 你的用户 ID，请前往 https://afdian.net/dashboard/dev 获取
     $tokenvar = getenv('TOKEN'); // 你的 API Token，请前往 https://afdian.net/dashboard/dev 获取
 
+    // 记录环境变量状态（敏感信息部分隐藏）
+    error_log('环境变量状态 - PAGETITLE: ' . ($pagetitlevar ? '已设置' : '未设置') . 
+              ', USERNAME: ' . ($usernamevar ? '已设置('.$usernamevar.')' : '未设置') . 
+              ', USERID: ' . ($useridvar ? '已设置(前4位:'.substr($useridvar, 0, 4).'...)' : '未设置') . 
+              ', TOKEN: ' . ($tokenvar ? '已设置(长度:'.strlen($tokenvar).')' : '未设置'));
+
     // 检查必要的环境变量是否已设置
     if (empty($usernamevar) || empty($useridvar) || empty($tokenvar)) {
         $errorMsg = '请检查环境变量设置，必须设置USERNAME、USERID和TOKEN';
@@ -40,15 +46,21 @@
 
     // 请求爱发电API
     $apiUrl = 'https://afdian.net/api/open/query-sponsor?' . http_build_query($data);
+    error_log('请求爱发电API: ' . $apiUrl);
+    
     $result = HttpGet($apiUrl);
     
     // 记录原始API返回结果供调试
-    error_log('Afdian API response: ' . $result);
+    error_log('Afdian API 响应: ' . substr($result, 0, 1000) . (strlen($result) > 1000 ? '...(已截断)' : ''));
     
-    $result = json_decode($result, true);
-
+    $decoded = json_decode($result, true);
+    error_log('解码结果: ' . ($decoded ? 'JSON解析成功' : 'JSON解析失败') . 
+             ', EC: ' . (isset($decoded['ec']) ? $decoded['ec'] : '未设置') . 
+             ', EM: ' . (isset($decoded['em']) ? $decoded['em'] : '未设置'));
+    
     // 检查API返回结果是否有效
-    if (isset($result['data']) && $result['data'] !== null) {
+    if (isset($decoded['data']) && $decoded['data'] !== null) {
+        $result = $decoded;
         $donator['total']     = $result['data']['total_count'];
         $donator['totalPage'] = $result['data']['total_page'];
         $donator['list']      = $result['data']['list'];
@@ -255,6 +267,11 @@ HTML;
         $sign .= 'params' . $params;
         $sign .= 'ts' . time();
         $sign .= 'user_id' . $userId;
+        
+        error_log('签名计算 - token长度: ' . strlen($token) . 
+                 ', params长度: ' . strlen($params) . 
+                 ', userId长度: ' . strlen($userId));
+        
         return md5($sign, false);
     }
 
@@ -275,7 +292,17 @@ HTML;
         curl_setopt($ch, CURLOPT_HEADER, 0);
         curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        
+        // 设置用户代理
+        curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.110 Safari/537.36');
+        
         $output = curl_exec($ch);
+        
+        // 记录CURL错误
+        if($output === false) {
+            error_log('CURL错误: ' . curl_error($ch) . ' (错误码: ' . curl_errno($ch) . ')');
+        }
+        
         curl_close($ch);
         return $output;
     }
