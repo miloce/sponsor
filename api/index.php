@@ -1,10 +1,27 @@
 <?php
     // 从环境变量中获取参数
     // 以下环境变量必须被设置
-    $pagetitlevar = getenv('PAGETITLE'); // 网页标题
+    $pagetitlevar = getenv('PAGETITLE') ?: '赞助页面'; // 网页标题
     $usernamevar = getenv('USERNAME'); // 你的用户名，即你的主页地址 @ 后面的那部分，如 https://afdian.net/@MisaLiu，那么 MisaLiu 就是你的用户名
     $useridvar = getenv('USERID'); // 你的用户 ID，请前往 https://afdian.net/dashboard/dev 获取
     $tokenvar = getenv('TOKEN'); // 你的 API Token，请前往 https://afdian.net/dashboard/dev 获取
+
+    // 检查必要的环境变量是否已设置
+    if (empty($usernamevar) || empty($useridvar) || empty($tokenvar)) {
+        $errorMsg = '请检查环境变量设置，必须设置USERNAME、USERID和TOKEN';
+        
+        if (empty($_POST)) {
+            die($errorMsg);
+        } else {
+            $return = array();
+            $return['code'] = -1;
+            $return['msg'] = $errorMsg;
+            $return['html'] = '<div class="mdui-col-xs-12 mdui-text-center">' . $errorMsg . '</div>';
+            echo json_encode($return);
+            exit;
+        }
+    }
+    
     $_AFDIAN = array(
         'pageTitle' => $pagetitlevar,
         'userName'  => $usernamevar,
@@ -12,7 +29,8 @@
         'token'     => $tokenvar
     );
 
-    $currentPage = !empty($_POST['page']) ? $_POST['page'] : 1;
+    $currentPage = !empty($_POST['page']) ? intval($_POST['page']) : 1;
+    if ($currentPage < 1) $currentPage = 1;
 
     $data = array();
     $data['user_id'] = $_AFDIAN['userId'];
@@ -20,7 +38,13 @@
     $data['ts']      = time();
     $data['sign']    = SignAfdian($_AFDIAN['token'], $data['params'], $_AFDIAN['userId']);
 
-    $result = HttpGet('https://afdian.net/api/open/query-sponsor?' . http_build_query($data));
+    // 请求爱发电API
+    $apiUrl = 'https://afdian.net/api/open/query-sponsor?' . http_build_query($data);
+    $result = HttpGet($apiUrl);
+    
+    // 记录原始API返回结果供调试
+    error_log('Afdian API response: ' . $result);
+    
     $result = json_decode($result, true);
 
     // 检查API返回结果是否有效
@@ -32,29 +56,44 @@
         $donatorsHTML = '';
         for ($i = 0; $i < count($donator['list']); $i++) {
             $_donator = $donator['list'][$i];
-            $_donator['last_sponsor'] = (empty(end($_donator['sponsor_plans'])['name']) ?
-                (empty($_donator['current_plan']['name']) ? array('name' => '') : $_donator['current_plan']) :
-                end($_donator['sponsor_plans']));
+            
+            // 安全地获取赞助计划
+            $sponsor_plans = isset($_donator['sponsor_plans']) ? $_donator['sponsor_plans'] : array();
+            $current_plan = isset($_donator['current_plan']) ? $_donator['current_plan'] : array('name' => '');
+            
+            // 安全地获取last_sponsor
+            $last_sponsor_plan = !empty($sponsor_plans) ? end($sponsor_plans) : array('name' => '');
+            $last_sponsor_name = isset($last_sponsor_plan['name']) ? $last_sponsor_plan['name'] : '';
+            
+            $_donator['last_sponsor'] = empty($last_sponsor_name) ? 
+                (empty($current_plan['name']) ? array('name' => '') : $current_plan) : 
+                $last_sponsor_plan;
+            
+            // 获取用户头像和名称
+            $user_avatar = isset($_donator['user']['avatar']) ? $_donator['user']['avatar'] : 'https://static.luozhinet.com/xcx/assets/icons/default-avatar.png';
+            $user_name = isset($_donator['user']['name']) ? $_donator['user']['name'] : '未知用户';
+            $all_sum_amount = isset($_donator['all_sum_amount']) ? $_donator['all_sum_amount'] : '0';
             
             $donatorsHTML .= '<div class="mdui-col-xs-12 mdui-col-md-6 mdui-m-b-2">
                 <div class="mdui-card">
                     <div class="mdui-card-header">
-                        <img class="mdui-card-header-avatar" src="' . $_donator['user']['avatar'] . '" />
-                        <div class="mdui-card-header-title">' . $_donator['user']['name'] .
-                        '&nbsp;&nbsp;&nbsp;&nbsp;共' . $_donator['all_sum_amount'] . '元' . '</div>
+                        <img class="mdui-card-header-avatar" src="' . $user_avatar . '" />
+                        <div class="mdui-card-header-title">' . $user_name .
+                        '&nbsp;&nbsp;&nbsp;&nbsp;共' . $all_sum_amount . '元' . '</div>
                         <div class="mdui-card-header-subtitle">最后发电：' .
                         (empty($_donator['last_sponsor']['name']) ?
                             '暂无' :
-                            $_donator['last_sponsor']['name'] . '&nbsp;&nbsp;' . $_donator['last_sponsor']['show_price'] . '元，于 ' . date('Y-m-d H:i:s', $_donator['last_pay_time'])) .
+                            $_donator['last_sponsor']['name'] . '&nbsp;&nbsp;' . 
+                            (isset($_donator['last_sponsor']['show_price']) ? $_donator['last_sponsor']['show_price'] : '?') . 
+                            '元，于 ' . (isset($_donator['last_pay_time']) ? date('Y-m-d H:i:s', $_donator['last_pay_time']) : '未知时间')) .
                         '</div>
                     </div>' .
-                    (!empty($_donator['last_sponsor']['pic']) ? '
+                    (isset($_donator['last_sponsor']['pic']) && !empty($_donator['last_sponsor']['pic']) ? '
                         <div class="mdui-card-media">
                             <img src="' . $_donator['last_sponsor']['pic'] . '"/>
                         </div>' :
                         '') .
                 '</div></div>';
-
         }
 
         $pageControlHTML = '<div class="mdui-row">
@@ -63,13 +102,17 @@
                 上一页
             </button>
             <div class="mdui-btn-group -center">';
-        for ($i = 0; $i < $donator['totalPage']; $i++) {
+        
+        // 保护：确保totalPage至少为1
+        $totalPage = max(1, isset($donator['totalPage']) ? $donator['totalPage'] : 1);
+        
+        for ($i = 0; $i < $totalPage; $i++) {
             $pageControlHTML .= '<button onclick="switchPage(' . ($i + 1) . ')" class="mdui-btn ' .
             ($i + 1 == $currentPage ? 'mdui-btn-active mdui-color-theme-accent' : 'mdui-text-color-theme-text') .
             '">' . ($i + 1) . '</button>';
         }
         $pageControlHTML .= '</div>
-            <button onclick="switchPage(' . ($currentPage + 1) . ')" class="mdui-btn mdui-btm-raised mdui-ripple mdui-color-theme-accent mdui-float-right"' . ($donator['totalPage'] == 1 ? ' disabled' : '') . '>
+            <button onclick="switchPage(' . ($currentPage + 1) . ')" class="mdui-btn mdui-btm-raised mdui-ripple mdui-color-theme-accent mdui-float-right"' . ($totalPage <= $currentPage ? ' disabled' : '') . '>
                 下一页
                 <i class="mdui-icon material-icons">keyboard_arrow_right</i>
             </button>
