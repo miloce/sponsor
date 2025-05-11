@@ -33,7 +33,7 @@ $data = array(
 
 // 发送请求
 $ch = curl_init();
-curl_setopt($ch, CURLOPT_URL, 'https://afdian.net/api/open/query-sponsor?' . http_build_query($data));
+curl_setopt($ch, CURLOPT_URL, 'http://47.242.58.243/api/open/query-sponsor?' . http_build_query($data));
 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/96.0.4664.110');
 curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
